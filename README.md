@@ -7,5 +7,6 @@ Here is the link used to access the application: [Portfolio_Analysis_Tool](https
 
 Please have a look at the file app.R to read the assumptions used for the model
 
+
 #V2.0
 A portfolio construction tab has been added. The user can now better understand his portfolio allocation and find interesting rebalancing solutions.
