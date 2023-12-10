@@ -318,7 +318,14 @@ server <- shinyServer(function(input, output) {
         }
 
         #Compute Risk-Free Rate
-        Rf <- getQuote("^TNX", src = "yahoo")[1,2]/100 
+        #Rf <- getQuote("^TNX", src = "yahoo")[1,2]/100 #Initial
+        
+        #Rf <- yfinance::get_price('^TNX')['regularMarketPrice']/100 #Temporary fix for quantmod getQuote issues...
+        #Rf <- Rf[[1]]
+        
+        #Fix2
+        Rf=tail(getSymbols.yahoo('^TNX',from = FromDate, to = ToDate, auto.assign = F)[,6],n=1)/100 #Move on from getQuote...
+        Rf <- Rf[[1]]
         
         #Compute Annualized Portfolio Returns and VaR
         AssetsReturns <- na.omit(ROC(PortfolioPrices, type = "discrete"))                                  
@@ -441,14 +448,7 @@ server <- shinyServer(function(input, output) {
         NEW <- cbind(PortfolioCumReturns,SP500CumReturns,SPTSXCumReturns,MSCIIMICumReturns,MSCIEMECumReturns)
         
         #Remove NAs for Nicer Looking Graph
-        for (j in 1:ncol(NEW)){   
-            
-            for (i in 1:nrow(NEW)){
-                if (is.na(NEW[i,j]) == TRUE){
-                    NEW[i,j] <- NEW[i-1,j]
-                }
-            }
-        }
+        NEW <- na.approx(NEW)
         
         #Graph (UI Output)
         Graph <- dygraph(NEW, ylab = "Returns",main = "Performance Overview") %>%
@@ -522,15 +522,25 @@ server <- shinyServer(function(input, output) {
 #Weights Function
 Run1 <- function(tickersw, SharesVecw, CountryVecw){
   
-  USDtoCAD <- getQuote("CAD=X", src = "yahoo")[2] #Convert USD to CAD
-  USDtoCAD <- USDtoCAD[[1]] 
+  #USDtoCAD <- getQuote("CAD=X", src = "yahoo")[2] #Convert USD to CAD #Initial
+  
+  #USDtoCAD <- yfinance::get_price('CAD=X')['regularMarketPrice'] #temp quantmod getquote fix
+  #USDtoCAD <- USDtoCAD[[1]]
+  
+  #Fix2
+  getFX('USD/CAD')#Move on from getQuote...
+  USDtoCAD <- tail(USDCAD,n=1)[[1]]
   
   #Select Last Prices (From Tickers)
   PortfolioPricesw <- NULL 
   tickersw <- toupper(tickersw) #CAPS
-  for (i in tickersw){
-      PortfolioPricesw <- cbind(PortfolioPricesw, getQuote(i, src = "yahoo")[,2])          
-  }  
+  for (i in 1:length(tickersw)){
+    #PortfolioPricesw <- cbind(PortfolioPricesw, getQuote(i, src = "yahoo")[,2]) #initial
+    #PortfolioPricesw <- cbind(PortfolioPricesw, yfinance::get_price(tickersw[i])[['regularMarketPrice']]) #Fix 1
+    
+     temp_p = tail(getSymbols.yahoo(tickersw[i],auto.assign = F)[,6],n=1)
+     PortfolioPricesw <- cbind(PortfolioPricesw, temp_p[[1]])
+  } 
   
   #Convert USD Denominated Assets to CAD
   for (i in 1:length(PortfolioPricesw)){
@@ -691,15 +701,24 @@ for (i in 2:29){
 }
 
 #My Weights
-USDtoCAD <- getQuote("CAD=X", src = "yahoo")[2] #Convert USD to CAD
-USDtoCAD <- USDtoCAD[[1]] 
+#USDtoCAD <- getQuote("CAD=X", src = "yahoo")[2] #Convert USD to CAD
+#USDtoCAD <- yfinance::get_price('CAD=X')['regularMarketPrice']
+#USDtoCAD <- USDtoCAD[[1]] 
+
+#Fix2
+getFX('USD/CAD')#Move on from getQuote...
+USDtoCAD <- tail(USDCAD,n=1)[[1]]
 
 #Select Last Prices (From Tickers)
 PortfolioPricesw <- NULL 
 tickersw <- toupper(tickersw) #CAPS
-for (i in tickersw){
-  PortfolioPricesw <- cbind(PortfolioPricesw, getQuote(i, src = "yahoo")[,2])          
-}  
+for (i in 1:length(tickersw)){
+  #PortfolioPricesw <- cbind(PortfolioPricesw, getQuote(i, src = "yahoo")[,2])
+    #PortfolioPricesw <- cbind(PortfolioPricesw, yfinance::get_price(tickersw[i])[['regularMarketPrice']])  
+    
+    temp_p = tail(getSymbols.yahoo(tickersw[i],auto.assign = F)[,6],n=1)
+    PortfolioPricesw <- cbind(PortfolioPricesw, temp_p[[1]])
+} 
 
 #Convert USD Denominated Assets to CAD
 for (i in 1:length(PortfolioPricesw)){
@@ -877,14 +896,23 @@ for (i in 1:1000){
 }
 
 #My Weights
-USDtoCAD <- getQuote("CAD=X", src = "yahoo")[2] #Convert USD to CAD
-USDtoCAD <- USDtoCAD[[1]] 
+#USDtoCAD <- getQuote("CAD=X", src = "yahoo")[2] #Convert USD to CAD
+#USDtoCAD <- yfinance::get_price('CAD=X')['regularMarketPrice']
+#USDtoCAD <- USDtoCAD[[1]] 
+
+#Fix2
+getFX('USD/CAD')#Move on from getQuote...
+USDtoCAD <- tail(USDCAD,n=1)[[1]]
 
 #Select Last Prices (From Tickers)
 PortfolioPricesw <- NULL 
 tickersw <- toupper(tickersw) #CAPS
-for (i in tickersw){
-  PortfolioPricesw <- cbind(PortfolioPricesw, getQuote(i, src = "yahoo")[,2])          
+for (i in 1:length(tickersw)){
+  #PortfolioPricesw <- cbind(PortfolioPricesw, getQuote(i, src = "yahoo")[,2])
+    #PortfolioPricesw <- cbind(PortfolioPricesw, yfinance::get_price(tickersw[i])[['regularMarketPrice']])  
+    
+    temp_p = tail(getSymbols.yahoo(tickersw[i],auto.assign = F)[,6],n=1)
+    PortfolioPricesw <- cbind(PortfolioPricesw, temp_p[[1]])
 }  
 
 #Convert USD Denominated Assets to CAD
